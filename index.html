@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Falcer · Conversor de temperatura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fcfcf8;
+    --grid: #d3e3ea;
+    --ink: #2a2f3b;
+    --ink-soft: #6b7280;
+    --cyan: #8edfe2;
+    --yellow: #f4e94b;
+    --lime: #90ea90;
+    --blue: #0ac9eb79;
+    --red: #f08c7e;
+    --pink: #f291ac;
+    --teal: #7ecee4;
+   --sumar: #14eb4d;
+   --resultados: #c9a7f0;
+    --line: #8a93a3;
+    --hand: "Patrick Hand", "Segoe Print", "Comic Sans MS", cursive;
+    --title: "Caveat", "Segoe Script", cursive;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: var(--hand);
+    font-size: 1.15rem;
+    color: var(--ink);
+    background: #e9eef0;
+    padding: 24px 16px 40px;
+  }
+
+  /* Hoja cuadriculada */
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(40, 60, 80, .15);
+    overflow: hidden;
+  }
+
+  header.brand {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 28px 8px;
+  }
+  header.brand svg { width: 76px; height: 76px; flex: none; }
+  header.brand h1 {
+    font-family: var(--title);
+    font-size: 3.4rem; line-height: 1; margin: 0; font-weight: 700;
+  }
+
+  main.panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: 2px solid var(--line);
+    border-bottom: 2px solid var(--line);
+    background: rgba(252, 252, 248, .55);
+  }
+  .panel { padding: 20px 24px 28px; min-width: 0; }
+  .panel + .panel { border-left: 2px solid var(--line); }
+
+  /* Títulos con marcador */
+  .panel h2 {
+    font-family: var(--title);
+    font-size: 2rem; font-weight: 700; margin: 0 0 18px;
+    padding: 2px 12px;
+    background: var(--cyan);
+    transform: rotate(-.5deg);
+    border-radius: 3px;
+  }
+
+  label { display: block; margin-bottom: 4px; }
+  .field { margin-bottom: 14px; }
+  input[type="text"] {
+    width: 100%;
+    font: inherit; color: inherit;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, .85);
+    border: 0; border-bottom: 2px solid var(--line);
+    border-radius: 4px 4px 0 0;
+  }
+  input[type="text"]:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+  input[readonly] { background: rgba(165, 194, 202, .3); color: var(--ink-soft); }
+
+  .swap-row { display: flex; justify-content: center; margin: -2px 0 6px; }
+  .swap {
+    border: 2px solid var(--line); background: #fff; color: var(--ink);
+    width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1.3rem; cursor: pointer;
+    transition: transform .25s ease;
+  }
+  .swap.turned { transform: rotate(180deg); }
+
+  .btn {
+    font: inherit; color: var(--ink);
+    border: 2px solid var(--ink); border-radius: 6px;
+    padding: 8px 20px; cursor: pointer;
+    box-shadow: 2px 3px 0 rgba(42, 47, 59, .75);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .btn:hover { transform: translate(1px, 1px); box-shadow: 1px 2px 0 rgba(42, 47, 59, .75); }
+  .btn:active { transform: translate(2px, 3px); box-shadow: none; }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .btn.lime   { background: var(--lime); }
+  .btn.blue   { background: var(--blue); }
+  .btn.yellow { background: var(--yellow); }
+  .btn.red    { background: var(--red); }
+  .btn.teal   { background: var(--teal); }
+  .btn.pink   { background: var(--pink); }
+.btn.sumar { background: var(--sumar); }
+  .actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
+  .status { min-height: 1.6em; margin: 14px 0 0; color: var(--ink-soft); }
+  .status.error { color: #b3372a; }
+
+  /* Resultado */
+  .formulas { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .formulas svg { width: 62px; height: 62px; flex: none; }
+  .formulas p { margin: 2px 0; }
+  .formulas .lbl { color: var(--ink-soft); }
+  h3 { font-weight: 400; font-size: 1.15rem; margin: 16px 0 6px; }
+  .box {
+    border: 2px solid var(--ink); border-radius: 4px;
+    background: rgba(255, 255, 255, .8);
+    padding: 10px 14px; min-height: 88px;
+  }
+  .box p { margin: 3px 0; }
+  .box .empty { color: var(--ink-soft); }
+  .big { font-size: 1.5rem; }
+
+  /* Historial */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--grid); }
+  th { font-weight: 400; }
+  th .tag { display: inline-block; padding: 1px 10px; background:var(--resultados); ... }
+  td.acc { width: 84px; white-space: nowrap; }
+  
+  .icon {
+    border: 0; background: none; cursor: pointer; font-size: 1.15rem;
+    padding: 4px 6px; border-radius: 4px; color: var(--ink);
+  }
+  .icon:hover { background: rgba(143, 164, 240, .3); }
+  .icon:focus-visible { outline: 3px solid var(--blue); }
+  .hist-empty { color: var(--ink-soft); padding: 12px 0; }
+  tr.editing td { background: rgba(244, 233, 75, .35); }
+
+  /* Barra inferior */
+  footer.bar {
+    display: flex; flex-wrap: wrap; justify-content: space-around; gap: 12px;
+    padding: 18px 20px 22px;
+  }
+  footer.bar .btn { min-width: 128px; display: flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.2; padding: 6px 18px; }
+  footer.bar .sym { font-size: 1.4rem; line-height: 1; }
+
+  @media (max-width: 900px) {
+    main.panels { grid-template-columns: 1fr; }
+    .panel + .panel { border-left: 0; border-top: 2px solid var(--line); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .swap, .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <header class="brand">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <g stroke="#2a2f3b" stroke-width="3.5" stroke-linecap="round">
+        <line x1="50" y1="6" x2="50" y2="17"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(30 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(60 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(90 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(120 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(150 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(180 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(210 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(240 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(270 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(300 50 50)"/>
+        <line x1="50" y1="6" x2="50" y2="17" transform="rotate(330 50 50)"/>
+      </g>
+      <circle cx="50" cy="50" r="27" fill="#f4e94b" stroke="#2a2f3b" stroke-width="3.5"/>
+    </svg>
+    <h1>Falcer</h1>
+  </header>
+
+  <main class="panels">
+
+    <!-- 1. Agregar datos -->
+    <section class="panel" aria-labelledby="t-datos">
+      <h2 id="t-datos">Agregar datos</h2>
+
+      <div class="field">
+        <label for="inC">Grados C°</label>
+        <input type="text" id="inC" inputmode="decimal" autocomplete="off" placeholder="Ej: 25">
+      </div>
+
+      <div class="swap-row">
+        <button class="swap" id="btnSwap" type="button" title="Invertir conversión" aria-label="Invertir conversión">&#8635;</button>
+      </div>
+
+      <div class="field">
+        <label for="inF">Grados F°</label>
+        <input type="text" id="inF" inputmode="decimal" autocomplete="off" placeholder="Resultado" readonly>
+      </div>
+
+      <div class="actions">
+        <button class="btn lime" id="btnGuardar" type="button">Guardar</button>
+        <button class="btn blue" id="btnCalcular" type="button">Calcular</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 2. Resultado -->
+    <section class="panel" aria-labelledby="t-res">
+      <h2 id="t-res">Resultado</h2>
+
+      <div class="formulas">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <g stroke="#2a2f3b" stroke-width="3.5" stroke-linecap="round">
+            <line x1="50" y1="6" x2="50" y2="17"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(45 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(90 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(135 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(180 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(225 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(270 50 50)"/>
+            <line x1="50" y1="6" x2="50" y2="17" transform="rotate(315 50 50)"/>
+          </g>
+          <circle cx="50" cy="50" r="27" fill="#f4e94b" stroke="#2a2f3b" stroke-width="3.5"/>
+        </svg>
+        <div>
+          <p class="lbl">Fórmulas:</p>
+          <p>F = (C° × 1,8) + 32</p>
+          <p>C = (F° − 32) ÷ 1,8</p>
+        </div>
+      </div>
+
+      <h3>Procedimiento</h3>
+      <div class="box" id="procedimiento"><p class="empty">Aún no hay ningún cálculo.</p></div>
+
+      <h3>Conversión total</h3>
+      <div class="box" id="conversion"><p class="empty">Calcula una temperatura para ver el resultado.</p></div>
+    </section>
+
+    <!-- 3. Historial -->
+    <section class="panel" aria-labelledby="t-hist">
+      <h2 id="t-hist">Historial de ejercicios</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th><span class="tag">Resultados</span></th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="historial"></tbody>
+      </table>
+      <p class="hist-empty" id="histVacio">Todavía no has guardado ejercicios.</p>
+    </section>
+  </main>
+
+  <footer class="bar">
+    <button class="btn sumar"   id="btnSumar"     type="button"><span class="sym">+</span>Sumar</button>
+    <button class="btn red"    id="btnRestar"    type="button"><span class="sym">&minus;</span>Restar</button>
+    <button class="btn yellow" id="btnResultado" type="button"><span class="sym">=</span>Resultado</button>
+    <button class="btn teal"   id="btnReiniciar" type="button"><span class="sym">&#8634;</span>Reiniciar</button>
+    <button class="btn pink"   id="btnLimpiar"   type="button"><span class="sym">&#9003;</span>Limpiar</button>
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    dir: 'c2f',       // 'c2f' = de °C a °F | 'f2c' = de °F a °C
+    current: null,    // { c, f, steps: [] } último cálculo
+    total: null,      // acumulado en °C (Sumar / Restar)
+    showTotal: false, // la caja "Conversión total" muestra el acumulado
+    history: [],      // { id, c, f }
+    editing: null,    // id del ejercicio que se está editando
+    nextId: 1
+  };
+
+  const inC = $('inC'), inF = $('inF');
+  const sourceInput = () => (state.dir === 'c2f' ? inC : inF);
+  const targetInput = () => (state.dir === 'c2f' ? inF : inC);
+
+  const round2 = (n) => Math.round(n * 100) / 100;
+  const fmt = (n) => new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(round2(n));
+  const toField = (n) => String(round2(n)).replace('.', ',');
+
+  function parse(text) {
+    const t = text.trim().replace(',', '.');
+    if (t === '') return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function setStatus(msg, isError = false) {
+    const el = $('status');
+    el.textContent = msg;
+    el.classList.toggle('error', isError);
+  }
+
+  /* ---------- Cálculo ---------- */
+  function calcular() {
+    const label = state.dir === 'c2f' ? 'grados C°' : 'grados F°';
+    const v = parse(sourceInput().value);
+    if (v === null) {
+      setStatus('Escribe un número válido en ' + label + '.', true);
+      sourceInput().focus();
+      return false;
+    }
+
+    if (state.dir === 'c2f') {
+      const paso1 = v * 1.8;
+      const f = paso1 + 32;
+      state.current = {
+        c: v, f,
+        steps: [`${fmt(v)} × 1,8 = ${fmt(paso1)}`, `${fmt(paso1)} + 32 = ${fmt(f)}`]
+      };
+    } else {
+      const paso1 = v - 32;
+      const c = paso1 / 1.8;
+      state.current = {
+        c, f: v,
+        steps: [`${fmt(v)} − 32 = ${fmt(paso1)}`, `${fmt(paso1)} ÷ 1,8 = ${fmt(c)}`]
+      };
+    }
+
+    targetInput().value = toField(state.dir === 'c2f' ? state.current.f : state.current.c);
+    state.showTotal = false;
+    setStatus('');
+    render();
+    return true;
+  }
+
+  function ensureCurrent() {
+    return state.current ? true : calcular();
+  }
+
+  /* ---------- Pintar resultado ---------- */
+  function render() {
+    const proc = $('procedimiento');
+    const conv = $('conversion');
+
+    if (!state.current) {
+      proc.innerHTML = '<p class="empty">Aún no hay ningún cálculo.</p>';
+    } else {
+      proc.innerHTML = state.current.steps.map((s, i) => `<p>${i + 1}. ${s}</p>`).join('');
+    }
+
+    if (state.showTotal && state.total !== null) {
+      const totalF = state.total * 1.8 + 32;
+      conv.innerHTML =
+        `<p>Total acumulado:</p><p class="big">${fmt(state.total)} °C</p><p>${fmt(totalF)} °F</p>`;
+    } else if (state.current) {
+      conv.innerHTML =
+        `<p class="big">${fmt(state.current.c)} °C = ${fmt(state.current.f)} °F</p>`;
+    } else {
+      conv.innerHTML = '<p class="empty">Calcula una temperatura para ver el resultado.</p>';
+    }
+  }
+
+  function renderHistory() {
+    const body = $('historial');
+    body.innerHTML = state.history.map((h, i) => `
+      <tr data-id="${h.id}" class="${h.id === state.editing ? 'editing' : ''}">
+        <td class="num">${i + 1}</td>
+        <td>${fmt(h.c)} °C → ${fmt(h.f)} °F</td>
+        <td class="acc">
+          <button class="icon" data-act="edit" title="Editar" aria-label="Editar ejercicio ${i + 1}">&#9998;</button>
+          <button class="icon" data-act="del" title="Eliminar" aria-label="Eliminar ejercicio ${i + 1}">&#128465;</button>
+        </td>
+      </tr>`).join('');
+    $('histVacio').hidden = state.history.length > 0;
+    $('btnGuardar').textContent = state.editing !== null ? 'Actualizar' : 'Guardar';
+  }
+
+  /* ---------- Acciones del panel 1 ---------- */
+  function guardar() {
+    if (!ensureCurrent()) return;
+    const { c, f } = state.current;
+
+    if (state.editing !== null) {
+      const item = state.history.find((h) => h.id === state.editing);
+      if (item) { item.c = c; item.f = f; }
+      state.editing = null;
+      setStatus('Ejercicio actualizado.');
+    } else {
+      state.history.push({ id: state.nextId++, c, f });
+      setStatus('Ejercicio guardado en el historial.');
+    }
+    renderHistory();
+  }
+
+  function invertir() {
+    state.dir = state.dir === 'c2f' ? 'f2c' : 'c2f';
+    $('btnSwap').classList.toggle('turned');
+    inC.readOnly = state.dir === 'f2c';
+    inF.readOnly = state.dir === 'c2f';
+    inC.placeholder = state.dir === 'c2f' ? 'Ej: 25' : 'Resultado';
+    inF.placeholder = state.dir === 'f2c' ? 'Ej: 77' : 'Resultado';
+    limpiar();
+    sourceInput().focus();
+  }
+
+  /* ---------- Barra inferior ---------- */
+  function sumar() {
+    if (!ensureCurrent()) return;
+    state.total = (state.total ?? 0) + state.current.c;
+    state.showTotal = true;
+    setStatus(`Se sumaron ${fmt(state.current.c)} °C al total.`);
+    render();
+  }
+
+  function restar() {
+    if (!ensureCurrent()) return;
+    state.total = (state.total ?? 0) - state.current.c;
+    state.showTotal = true;
+    setStatus(`Se restaron ${fmt(state.current.c)} °C del total.`);
+    render();
+  }
+
+  function verResultado() {
+    if (state.total === null) {
+      setStatus('Aún no has sumado ni restado ninguna temperatura.', true);
+      return;
+    }
+    state.showTotal = true;
+    setStatus('');
+    render();
+  }
+
+  function limpiar() {
+    inC.value = '';
+    inF.value = '';
+    state.current = null;
+    state.showTotal = false;
+    state.editing = null;
+    setStatus('');
+    render();
+    renderHistory();
+  }
+
+  function reiniciar() {
+    if (state.history.length > 0 && !confirm('Se borrará el historial y el total acumulado. ¿Continuar?')) return;
+    state.history = [];
+    state.total = null;
+    state.nextId = 1;
+    limpiar();
+  }
+
+  /* ---------- Eventos ---------- */
+  $('btnCalcular').addEventListener('click', calcular);
+  $('btnGuardar').addEventListener('click', guardar);
+  $('btnSwap').addEventListener('click', invertir);
+  $('btnSumar').addEventListener('click', sumar);
+  $('btnRestar').addEventListener('click', restar);
+  $('btnResultado').addEventListener('click', verResultado);
+  $('btnReiniciar').addEventListener('click', reiniciar);
+  $('btnLimpiar').addEventListener('click', limpiar);
+
+  [inC, inF].forEach((el) => {
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') calcular(); });
+    el.addEventListener('input', () => {
+      if (el !== sourceInput()) return;
+      state.current = null;        // el valor cambió: el cálculo anterior ya no vale
+      targetInput().value = '';
+      state.showTotal = false;
+      render();
+    });
+  });
+
+  $('historial').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = Number(btn.closest('tr').dataset.id);
+    const item = state.history.find((h) => h.id === id);
+    if (!item) return;
+
+    if (btn.dataset.act === 'del') {
+      state.history = state.history.filter((h) => h.id !== id);
+      if (state.editing === id) state.editing = null;
+      renderHistory();
+    } else {
+      // Editar: carga el valor en el formulario (en °C)
+      if (state.dir !== 'c2f') invertir();
+      inC.value = toField(item.c);
+      calcular();
+      state.editing = id;
+      renderHistory();
+      setStatus('Edita el valor y pulsa Actualizar.');
+      inC.focus();
+    }
+  });
+
+  render();
+  renderHistory();
+</script>
+</body>
+</html>
